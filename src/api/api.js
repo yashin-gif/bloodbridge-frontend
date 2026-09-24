@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://127.0.0.1:8000",
+   baseURL: "https://bloodbridge-backend-t3yu.onrender.com",
     headers: {
         "Content-Type": "application/json",
     },
