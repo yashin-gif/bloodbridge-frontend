@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-
+import ResetPassword from "../pages/ResetPassword";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
 import Dashboard from "../pages/Dashboard";
 import BloodRequests from "../pages/BloodRequests";
 import Donations from "../pages/Donations";
 import Profile from "../pages/Profile";
 import BloodDonors from "../pages/BloodDonors";
-
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminUsers from "../pages/admin/AdminUsers";
 import AdminBloodRequests from "../pages/admin/AdminBloodRequests";
@@ -34,6 +34,16 @@ const AppRoutes = () => {
             <Route
                 path="/register"
                 element={<Register />}
+            />
+
+            <Route
+                path="/forgot-password"
+                element={<ForgotPassword />}
+            />
+            
+            <Route
+                path="/reset-password"
+                element={<ResetPassword />}
             />
 
             {/* User Protected */}
