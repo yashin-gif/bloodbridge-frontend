@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../services/api";
-import BloodRequests from "../pages/BloodRequests";
 
 const AuthContext = createContext();
 
@@ -15,16 +14,23 @@ export const AuthProvider = ({ children }) => {
 
             if (!token) {
                 setUser(null);
-                return;
+                return null;
             }
 
             const response = await api.get("/users/me");
+
             setUser(response.data);
+
+            return response.data;
+
         } catch (error) {
-            console.log("User authentication failed");
+            console.error("Get current user error:", error);
 
             localStorage.removeItem("access_token");
             setUser(null);
+
+            throw error;
+
         } finally {
             setLoading(false);
         }
@@ -32,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
     // Run when app starts
     useEffect(() => {
-        getCurrentUser();
+        getCurrentUser().catch(() => {});
     }, []);
 
     // Login
