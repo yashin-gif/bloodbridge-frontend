@@ -65,6 +65,10 @@ const BloodRequests = () => {
     const [location, setLocation] = useState("");
     const [status, setStatus] = useState("");
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const requestsPerPage = 6;
+
     const loadRequests = async () => {
         try {
             setLoading(true);
@@ -142,7 +146,22 @@ const BloodRequests = () => {
         }
 
         setFilteredRequests(result);
+
+        // Filter/search change হলে Page 1 এ যাবে
+        setCurrentPage(1);
     }, [requests, search, bloodGroup, location, status]);
+
+    // Pagination calculation
+    const totalPages = Math.ceil(
+        filteredRequests.length / requestsPerPage
+    );
+
+    const startIndex = (currentPage - 1) * requestsPerPage;
+
+    const paginatedRequests = filteredRequests.slice(
+        startIndex,
+        startIndex + requestsPerPage
+    );
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -230,6 +249,7 @@ const BloodRequests = () => {
                 setMessage(
                     "Blood request updated successfully. ❤️"
                 );
+
                 setMessageType("success");
             } else {
                 await api.post("/blood-requests/", {
@@ -240,6 +260,7 @@ const BloodRequests = () => {
                 setMessage(
                     "Blood request created successfully! ❤️"
                 );
+
                 setMessageType("success");
             }
 
@@ -327,6 +348,7 @@ const BloodRequests = () => {
         setBloodGroup("");
         setLocation("");
         setStatus("");
+        setCurrentPage(1);
     };
 
     const getUrgencyClass = (urgency) => {
@@ -505,9 +527,17 @@ const BloodRequests = () => {
                                         Select urgency
                                     </option>
 
-                                    <option value="normal">Normal</option>
-                                    <option value="urgent">Urgent</option>
-                                    <option value="critical">Critical</option>
+                                    <option value="normal">
+                                        Normal
+                                    </option>
+
+                                    <option value="urgent">
+                                        Urgent
+                                    </option>
+
+                                    <option value="critical">
+                                        Critical
+                                    </option>
                                 </select>
                             </div>
 
@@ -522,9 +552,17 @@ const BloodRequests = () => {
                                     onChange={handleChange}
                                     className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
                                 >
-                                    <option value="pending">Pending</option>
-                                    <option value="fulfilled">Fulfilled</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="pending">
+                                        Pending
+                                    </option>
+
+                                    <option value="fulfilled">
+                                        Fulfilled
+                                    </option>
+
+                                    <option value="cancelled">
+                                        Cancelled
+                                    </option>
                                 </select>
                             </div>
 
@@ -609,7 +647,9 @@ const BloodRequests = () => {
                                 <input
                                     type="text"
                                     value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearch(e.target.value)
+                                    }
                                     placeholder="Patient, hospital..."
                                     className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
                                 />
@@ -680,9 +720,17 @@ const BloodRequests = () => {
                                         All Status
                                     </option>
 
-                                    <option value="pending">Pending</option>
-                                    <option value="fulfilled">Fulfilled</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="pending">
+                                        Pending
+                                    </option>
+
+                                    <option value="fulfilled">
+                                        Fulfilled
+                                    </option>
+
+                                    <option value="cancelled">
+                                        Cancelled
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -698,7 +746,9 @@ const BloodRequests = () => {
 
                             <span className="bg-red-100 text-red-600 px-2.5 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
                                 {filteredRequests.length} Request
-                                {filteredRequests.length !== 1 ? "s" : ""}
+                                {filteredRequests.length !== 1
+                                    ? "s"
+                                    : ""}
                             </span>
                         </div>
 
@@ -710,7 +760,9 @@ const BloodRequests = () => {
                             </div>
                         ) : filteredRequests.length === 0 ? (
                             <div className="bg-white rounded-xl p-8 text-center shadow-sm">
-                                <div className="text-4xl mb-3">🩸</div>
+                                <div className="text-4xl mb-3">
+                                    🩸
+                                </div>
 
                                 <h2 className="text-lg font-semibold text-gray-800">
                                     No Blood Requests Found
@@ -721,192 +773,251 @@ const BloodRequests = () => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-                                {filteredRequests.map((r) => {
-                                    const isMyRequest =
-                                        Number(r.requested_by) ===
-                                        Number(user?.id);
+                                    {paginatedRequests.map((r) => {
+                                        const isMyRequest =
+                                            Number(r.requested_by) ===
+                                            Number(user?.id);
 
-                                    const isPending =
-                                        r.status === "pending";
+                                        const isPending =
+                                            r.status === "pending";
 
-                                    return (
-                                        <div
-                                            key={r.id}
-                                            className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 hover:shadow-md transition"
-                                        >
-                                            {/* Patient */}
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className="min-w-0">
-                                                    <h2 className="text-lg font-bold text-gray-800 ">
-                                                        {r.patient_name}
-                                                    </h2>
+                                        return (
+                                            <div
+                                                key={r.id}
+                                                className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 hover:shadow-md transition"
+                                            >
+                                                {/* Patient */}
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <div className="min-w-0">
+                                                        <h2 className="text-lg font-bold text-gray-800">
+                                                            {r.patient_name}
+                                                        </h2>
 
-                                                    <p className="text-xs text-gray-400 mt-0.5">
-                                                        Blood Request #{r.id}
-                                                    </p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">
+                                                            Blood Request #
+                                                            {r.id}
+                                                        </p>
+                                                    </div>
+
+                                                    <span className="bg-red-100 text-red-600 px-2.5 py-1 rounded-full text-sm font-bold shrink-0">
+                                                        {r.blood_group}
+                                                    </span>
                                                 </div>
 
-                                                <span className="bg-red-100 text-red-600 px-2.5 py-1 rounded-full text-sm font-bold shrink-0">
-                                                    {r.blood_group}
-                                                </span>
-                                            </div>
+                                                {/* Information */}
+                                                <div className="mt-4 grid grid-cols-1 gap-2 text-xs sm:text-sm text-gray-600">
 
-                                            {/* Information */}
-                                            <div className="mt-4 grid grid-cols-1 gap-2 text-xs sm:text-sm text-gray-600">
-                                                <p className="">
-                                                    🏥 <b>Hospital:</b>{" "}
-                                                    {r.hospital_name}
-                                                </p>
-
-                                                <p className="">
-                                                    📍 <b>Location:</b>{" "}
-                                                    {r.location}
-                                                </p>
-
-                                                <div className="grid grid-cols-2 gap-2">
                                                     <p>
-                                                        🩸 <b>Units:</b>{" "}
-                                                        {r.units_required}
+                                                        🏥{" "}
+                                                        <b>Hospital:</b>{" "}
+                                                        {r.hospital_name}
                                                     </p>
 
-                                                    <p className="">
-                                                        📅 <b>Date:</b>{" "}
-                                                        {r.required_date
-                                                            ? r.required_date.slice(0, 10)
-                                                            : r.available_date ||
-                                                            "Not set"}
+                                                    <p>
+                                                        📍{" "}
+                                                        <b>Location:</b>{" "}
+                                                        {r.location}
+                                                    </p>
+
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <p>
+                                                            🩸{" "}
+                                                            <b>Units:</b>{" "}
+                                                            {r.units_required}
+                                                        </p>
+
+                                                        <p>
+                                                            📅{" "}
+                                                            <b>Date:</b>{" "}
+                                                            {r.required_date
+                                                                ? r.required_date.slice(
+                                                                    0,
+                                                                    10
+                                                                )
+                                                                : r.available_date ||
+                                                                "Not set"}
+                                                        </p>
+                                                    </div>
+
+                                                    <p>
+                                                        📞{" "}
+                                                        <b>Contact:</b>{" "}
+                                                        {r.contact_phone}
                                                     </p>
                                                 </div>
 
-                                                <p className="">
-                                                    📞 <b>Contact:</b>{" "}
-                                                    {r.contact_phone}
-                                                </p>
-                                            </div>
-
-                                            {/* Badges */}
-                                            <div className="flex flex-wrap gap-1.5 mt-4">
-                                                {r.urgency && (
-                                                    <span
-                                                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${getUrgencyClass(
-                                                            r.urgency
-                                                        )}`}
-                                                    >
-                                                        {r.urgency}
-                                                    </span>
-                                                )}
-
-                                                {r.status && (
-                                                    <span
-                                                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${getStatusClass(
-                                                            r.status
-                                                        )}`}
-                                                    >
-                                                        {r.status}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {/* Reason */}
-                                            {r.reason && (
-                                                <div className="mt-3 bg-gray-50 border border-gray-100 p-2.5 rounded-lg text-xs sm:text-sm text-gray-600">
-                                                    <b>Message:</b>{" "}
-                                                    {r.reason}
-                                                </div>
-                                            )}
-
-                                            {/* Donate Form */}
-                                            {donatingId === r.id && (
-                                                <div className="mt-4 bg-red-50 border border-red-100 rounded-lg p-3">
-                                                    <h3 className="text-sm font-semibold text-gray-800">
-                                                        Donate Blood 🩸
-                                                    </h3>
-
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        Add a note for the requester.
-                                                    </p>
-
-                                                    <textarea
-                                                        value={donationNotes}
-                                                        onChange={(e) =>
-                                                            setDonationNotes(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        rows="3"
-                                                        placeholder="Example: I can donate blood."
-                                                        className="w-full mt-2.5 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                                    />
-
-                                                    <div className="flex flex-col sm:flex-row gap-2 mt-2.5">
-                                                        <button
-                                                            type="button"
-                                                            disabled={donating}
-                                                            onClick={() =>
-                                                                handleDonate(r.id)
-                                                            }
-                                                            className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                                                {/* Badges */}
+                                                <div className="flex flex-wrap gap-1.5 mt-4">
+                                                    {r.urgency && (
+                                                        <span
+                                                            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${getUrgencyClass(
+                                                                r.urgency
+                                                            )}`}
                                                         >
-                                                            {donating
-                                                                ? "Submitting..."
-                                                                : "Confirm Donation"}
+                                                            {r.urgency}
+                                                        </span>
+                                                    )}
+
+                                                    {r.status && (
+                                                        <span
+                                                            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${getStatusClass(
+                                                                r.status
+                                                            )}`}
+                                                        >
+                                                            {r.status}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Reason */}
+                                                {r.reason && (
+                                                    <div className="mt-3 bg-gray-50 border border-gray-100 p-2.5 rounded-lg text-xs sm:text-sm text-gray-600">
+                                                        <b>Message:</b>{" "}
+                                                        {r.reason}
+                                                    </div>
+                                                )}
+
+                                                {/* Donate Form */}
+                                                {donatingId === r.id && (
+                                                    <div className="mt-4 bg-red-50 border border-red-100 rounded-lg p-3">
+                                                        <h3 className="text-sm font-semibold text-gray-800">
+                                                            Donate Blood 🩸
+                                                        </h3>
+
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            Add a note for the requester.
+                                                        </p>
+
+                                                        <textarea
+                                                            value={donationNotes}
+                                                            onChange={(e) =>
+                                                                setDonationNotes(
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            rows="3"
+                                                            placeholder="Example: I can donate blood."
+                                                            className="w-full mt-2.5 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                                                        />
+
+                                                        <div className="flex flex-col sm:flex-row gap-2 mt-2.5">
+                                                            <button
+                                                                type="button"
+                                                                disabled={donating}
+                                                                onClick={() =>
+                                                                    handleDonate(
+                                                                        r.id
+                                                                    )
+                                                                }
+                                                                className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                                                            >
+                                                                {donating
+                                                                    ? "Submitting..."
+                                                                    : "Confirm Donation"}
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={
+                                                                    handleCancelDonate
+                                                                }
+                                                                className="sm:px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Buttons */}
+                                                {isMyRequest ? (
+                                                    <div className="mt-4 flex gap-2">
+                                                        <button
+                                                            onClick={() =>
+                                                                handleEdit(r)
+                                                            }
+                                                            className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+                                                        >
+                                                            Edit
                                                         </button>
 
                                                         <button
-                                                            type="button"
-                                                            onClick={
-                                                                handleCancelDonate
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    r.id
+                                                                )
                                                             }
-                                                            className="sm:px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
+                                                            className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
                                                         >
-                                                            Cancel
+                                                            Delete
                                                         </button>
                                                     </div>
-                                                </div>
-                                            )}
+                                                ) : (
+                                                    isPending &&
+                                                    donatingId !== r.id && (
+                                                        <button
+                                                            onClick={() =>
+                                                                handleDonateClick(
+                                                                    r.id
+                                                                )
+                                                            }
+                                                            className="mt-4 w-full bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+                                                        >
+                                                            🩸 Donate Blood
+                                                        </button>
+                                                    )
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
 
-                                            {/* Buttons */}
-                                            {isMyRequest ? (
-                                                <div className="mt-4 flex gap-2">
-                                                    <button
-                                                        onClick={() =>
-                                                            handleEdit(r)
-                                                        }
-                                                        className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-                                                    >
-                                                        Edit
-                                                    </button>
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-center gap-2 mt-6">
 
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDelete(r.id)
-                                                        }
-                                                        className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                isPending &&
-                                                donatingId !== r.id && (
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDonateClick(
-                                                                r.id
-                                                            )
-                                                        }
-                                                        className="mt-4 w-full bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-                                                    >
-                                                        🩸 Donate Blood
-                                                    </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setCurrentPage((page) =>
+                                                    Math.max(page - 1, 1)
                                                 )
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                            }
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Previous
+                                        </button>
+
+                                        <span className="px-4 py-2 text-sm font-semibold text-gray-700">
+                                            Page {currentPage} of{" "}
+                                            {totalPages}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setCurrentPage((page) =>
+                                                    Math.min(
+                                                        page + 1,
+                                                        totalPages
+                                                    )
+                                                )
+                                            }
+                                            disabled={
+                                                currentPage === totalPages
+                                            }
+                                            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Next
+                                        </button>
+
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
